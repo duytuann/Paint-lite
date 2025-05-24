@@ -25,6 +25,7 @@ const Toolbar: React.FC<ToolbarProps> = ({activeTool, onToolChange}) => {
         <div className="toolbar-tools">
           {mainTools.map((toolId) => {
             const tool = TOOLS[toolId];
+            const IconComponent = tool.icon;
             return (
               <button
                 key={tool.id}
@@ -34,7 +35,7 @@ const Toolbar: React.FC<ToolbarProps> = ({activeTool, onToolChange}) => {
                 onClick={() => onToolChange(tool.id)}
                 title={tool.description}
               >
-                <span className="tool-icon">{tool.icon}</span>
+                <IconComponent className="tool-icon" size={16} />
               </button>
             );
           })}

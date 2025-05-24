@@ -30,6 +30,7 @@
   justify-content: center;
   transition: all 0.2s ease;
   font-size: 16px;
+  padding: 0;
 }
 
 .toolbar-button:hover {
@@ -62,8 +63,8 @@
 }
 
 .tool-icon {
-  font-size: 16px;
   color: #374151;
+  stroke-width: 2;
 }
 
 .toolbar-button.active .tool-icon {

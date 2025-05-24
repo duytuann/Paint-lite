@@ -9,3 +9,7 @@
   overflow: hidden;
   position: relative;
 }
+
+button:focus {
+  outline: none;
+}
