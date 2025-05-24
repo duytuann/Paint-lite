@@ -1,6 +1,6 @@
 import {useState, useCallback} from "react";
-import type {ToolType} from "../types/tools";
-import {DEFAULT_TOOL} from "../constants/tools";
+import type {ToolType} from "@/types/tools";
+import {DEFAULT_TOOL} from "@/constants/tools";
 
 export const useTools = () => {
   const [activeTool, setActiveTool] = useState<ToolType>(DEFAULT_TOOL);

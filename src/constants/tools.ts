@@ -1,4 +1,4 @@
-import type {Tool, ToolType} from "../types/tools";
+import type {Tool, ToolType} from "@/types/tools";
 import {Square, Circle, MoveRight, Minus, Pencil} from "lucide-react";
 
 export const TOOLS: Record<ToolType, Tool> = {
@@ -33,5 +33,22 @@ export const TOOLS: Record<ToolType, Tool> = {
     description: "Draw with pencil",
   },
 };
+
+// Main tools to display in toolbar (in order)
+export const MAIN_TOOLS: ToolType[] = [
+  "rectangle",
+  "ellipse",
+  "arrow",
+  "line",
+  "draw",
+];
+
+export enum ToolTypes {
+  Rectangle = "rectangle",
+  Ellipse = "ellipse",
+  Arrow = "arrow",
+  Line = "line",
+  Draw = "draw",
+}
 
 export const DEFAULT_TOOL: ToolType = "rectangle";

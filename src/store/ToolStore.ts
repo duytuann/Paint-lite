@@ -1,6 +1,6 @@
 import {makeAutoObservable} from "mobx";
-import type {ToolType} from "../types";
-import {DEFAULT_TOOL} from "../constants";
+import type {ToolType} from "@/types";
+import {DEFAULT_TOOL} from "@/constants";
 
 export class ToolStore {
   activeTool: ToolType = DEFAULT_TOOL;

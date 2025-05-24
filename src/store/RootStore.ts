@@ -1,11 +1,14 @@
 import {createContext, useContext} from "react";
 import {ToolStore} from "./ToolStore";
+import {CanvasStore} from "./CanvasStore";
 
 export class RootStore {
   toolStore: ToolStore;
+  canvasStore: CanvasStore;
 
   constructor() {
     this.toolStore = new ToolStore();
+    this.canvasStore = new CanvasStore();
   }
 
   // Initialize the stores and set up any cross-store relationships
@@ -33,3 +36,4 @@ export const useStores = () => {
 
 // Individual store hooks for convenience
 export const useToolStore = () => useStores().toolStore;
+export const useCanvasStore = () => useStores().canvasStore;
