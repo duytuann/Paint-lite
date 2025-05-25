@@ -1,4 +1,5 @@
 import {makeAutoObservable} from "mobx";
+import {DEFAULT_CANVAS_BACKGROUND_COLOR} from "@/constants/colors";
 
 export interface DrawingObject {
   id: string;
@@ -10,12 +11,19 @@ export interface DrawingObject {
   endX?: number;
   endY?: number;
   points?: Array<{x: number; y: number}>;
+  strokeColor?: string;
+  strokeWidth?: number;
+  backgroundColor?: string;
+  opacity?: number;
 }
 
 export class CanvasStore {
   // Canvas dimensions
   width = 0;
   height = 0;
+
+  // Canvas background
+  canvasBackgroundColor = DEFAULT_CANVAS_BACKGROUND_COLOR;
 
   // Drawing objects
   objects: DrawingObject[] = [];
@@ -36,6 +44,10 @@ export class CanvasStore {
   setCanvasDimensions = (width: number, height: number) => {
     this.width = width;
     this.height = height;
+  };
+
+  setCanvasBackgroundColor = (color: string) => {
+    this.canvasBackgroundColor = color;
   };
 
   addObject = (object: DrawingObject) => {

@@ -1,7 +1,14 @@
+export enum StrokeWidth {
+  THIN = 1,
+  MEDIUM = 2,
+  THICK = 4,
+}
+
 // Default tool settings
 export const DEFAULT_STROKE_COLOR = "#000000";
 export const DEFAULT_BACKGROUND_COLOR = "transparent";
-export const DEFAULT_STROKE_WIDTH = 2;
+export const DEFAULT_CANVAS_BACKGROUND_COLOR = "transparent";
+export const DEFAULT_STROKE_WIDTH = StrokeWidth.MEDIUM;
 export const DEFAULT_OPACITY = 100;
 
 // Special color values
@@ -21,4 +28,12 @@ export const BACKGROUND_COLORS = [
   "#b2f2bb",
   "#a5d8ff",
   "#ffec99",
+];
+
+export const CANVAS_BACKGROUND_COLORS = [
+  "#ffffff",
+  "#f8f9fa",
+  "#f5faff",
+  "#fffce8",
+  "#fdf8f6",
 ];

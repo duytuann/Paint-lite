@@ -1,11 +1,23 @@
 import {observer} from "mobx-react-lite";
-import {useToolStore} from "@/store";
-import {STROKE_COLORS, BACKGROUND_COLORS} from "@/constants/colors";
+import {useToolStore, useCanvasStore} from "@/store";
+import {
+  STROKE_COLORS,
+  BACKGROUND_COLORS,
+  CANVAS_BACKGROUND_COLORS,
+  StrokeWidth,
+} from "@/constants/colors";
 import "./Sidebar.css";
 import ColorPicker from "@/components/color-picker/ColorPicker";
 
 const Sidebar = observer(() => {
   const toolStore = useToolStore();
+  const canvasStore = useCanvasStore();
+
+  const strokeWidthOptions = [
+    {width: StrokeWidth.THIN, className: "stroke-thin"},
+    {width: StrokeWidth.MEDIUM, className: "stroke-medium"},
+    {width: StrokeWidth.THICK, className: "stroke-thick"},
+  ];
 
   return (
     <div className="sidebar">
@@ -34,15 +46,17 @@ const Sidebar = observer(() => {
         <div className="sidebar-section">
           <h3 className="sidebar-title">Stroke width</h3>
           <div className="stroke-width-options">
-            <div className="stroke-width-option">
-              <div className="stroke-line stroke-thin"></div>
-            </div>
-            <div className="stroke-width-option">
-              <div className="stroke-line stroke-medium"></div>
-            </div>
-            <div className="stroke-width-option active">
-              <div className="stroke-line stroke-thick"></div>
-            </div>
+            {strokeWidthOptions.map(({width, className}) => (
+              <div
+                key={width}
+                className={`stroke-width-option ${
+                  toolStore.strokeWidth === width ? "active" : ""
+                }`}
+                onClick={() => toolStore.setStrokeWidth(width)}
+              >
+                <div className={`stroke-line ${className}`}></div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -54,7 +68,8 @@ const Sidebar = observer(() => {
               type="range"
               min="0"
               max="100"
-              defaultValue="100"
+              value={toolStore.opacity}
+              onChange={(e) => toolStore.setOpacity(Number(e.target.value))}
               className="slider"
             />
             <div className="opacity-labels">
@@ -62,6 +77,16 @@ const Sidebar = observer(() => {
               <span>100</span>
             </div>
           </div>
+        </div>
+
+        {/* Canvas Background Section */}
+        <div className="sidebar-section">
+          <ColorPicker
+            currentColor={canvasStore.canvasBackgroundColor}
+            onColorChange={canvasStore.setCanvasBackgroundColor}
+            label="Canvas Background"
+            colors={CANVAS_BACKGROUND_COLORS}
+          />
         </div>
       </div>
     </div>

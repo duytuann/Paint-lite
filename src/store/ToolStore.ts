@@ -6,6 +6,7 @@ import {
   DEFAULT_BACKGROUND_COLOR,
   DEFAULT_STROKE_WIDTH,
   DEFAULT_OPACITY,
+  StrokeWidth,
 } from "@/constants/colors";
 import {hexToRgba} from "@/utils/color";
 
@@ -16,7 +17,7 @@ export class ToolStore {
   // Drawing properties
   strokeColor = DEFAULT_STROKE_COLOR;
   backgroundColor = DEFAULT_BACKGROUND_COLOR;
-  strokeWidth = DEFAULT_STROKE_WIDTH;
+  strokeWidth: StrokeWidth = DEFAULT_STROKE_WIDTH;
   opacity = DEFAULT_OPACITY;
 
   constructor() {
@@ -45,7 +46,7 @@ export class ToolStore {
     this.backgroundColor = color;
   };
 
-  setStrokeWidth = (width: number) => {
+  setStrokeWidth = (width: StrokeWidth) => {
     this.strokeWidth = width;
   };
 

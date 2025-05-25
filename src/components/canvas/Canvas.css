@@ -14,6 +14,7 @@
   height: 100%;
   cursor: crosshair;
   display: block;
+  background: transparent;
 }
 
 .canvas-overlay {
@@ -54,23 +55,9 @@
 .canvas[data-tool="rectangle"],
 .canvas[data-tool="ellipse"],
 .canvas[data-tool="arrow"],
-.canvas[data-tool="line"] {
+.canvas[data-tool="line"],
+.canvas[data-tool="draw"] {
   cursor: crosshair;
-}
-
-/* Canvas background pattern */
-.canvas-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
-  background-size: 20px 20px;
-  opacity: 0.3;
-  pointer-events: none;
-  z-index: 2;
 }
 
 /* Responsive design */

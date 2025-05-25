@@ -1,9 +1,10 @@
-import React, {useRef, useEffect} from "react";
+import React, {useRef, useEffect, useCallback} from "react";
 import {observer} from "mobx-react-lite";
 import {useToolStore, useCanvasStore} from "@/store";
 import type {ToolType} from "@/types/tools";
 import {ToolTypes} from "@/constants";
 import type {DrawingObject} from "@/store/CanvasStore";
+import {TRANSPARENT} from "@/constants/colors";
 
 import "./Canvas.css";
 
@@ -38,10 +39,13 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
       x: pos.x,
       y: pos.y,
       points: activeTool === ToolTypes.Draw ? [pos] : undefined,
+      strokeColor: toolStore.strokeColor,
+      strokeWidth: toolStore.strokeWidth,
+      backgroundColor: toolStore.backgroundColor,
+      opacity: toolStore.opacity,
     };
 
     canvasStore.setCurrentObject(newObject);
-    // Drawing logic will be implemented based on active tool
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -73,12 +77,18 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
     toolStore.stopDrawing();
   };
 
-  const drawObject = (
+  const drawObject = useCallback((
     ctx: CanvasRenderingContext2D,
     obj: Partial<DrawingObject>
   ) => {
     // Save canvas state to restore later
     ctx.save();
+
+    // Apply drawing styles (color, width, opacity)
+    ctx.strokeStyle = obj.strokeColor || toolStore.currentStrokeStyle;
+    ctx.fillStyle = obj.backgroundColor || toolStore.currentBackgroundStyle;
+    ctx.lineWidth = obj.strokeWidth || toolStore.strokeWidth;
+    ctx.globalAlpha = (obj.opacity || toolStore.opacity) / 100;
 
     switch (obj.type) {
       case ToolTypes.Draw:
@@ -130,6 +140,9 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
 
       case ToolTypes.Rectangle:
         if (obj.width && obj.height) {
+          if (obj.backgroundColor !== TRANSPARENT) {
+            ctx.fillRect(obj.x!, obj.y!, obj.width, obj.height);
+          }
           ctx.strokeRect(obj.x!, obj.y!, obj.width, obj.height);
         }
         break;
@@ -148,6 +161,10 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
             0, // start
             2 * Math.PI // end angle
           );
+          if (obj.backgroundColor !== TRANSPARENT) {
+            ctx.fill();
+          }
+
           ctx.stroke();
         }
         break;
@@ -155,7 +172,7 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
 
     // Restore canvas state (cleanup)
     ctx.restore();
-  };
+  }, [toolStore.currentStrokeStyle, toolStore.currentBackgroundStyle, toolStore.strokeWidth, toolStore.opacity]);
 
   useEffect(() => {
     const redrawCanvas = () => {
@@ -165,7 +182,14 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
+      // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Apply canvas background color
+      if (canvasStore.canvasBackgroundColor !== TRANSPARENT) {
+        ctx.fillStyle = canvasStore.canvasBackgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
       // Draw all saved objects
       canvasStore.objects.forEach((obj) => {
@@ -178,7 +202,13 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
       }
     };
     redrawCanvas();
-  }, [canvasStore.objects, canvasStore.currentObject, toolStore.isDrawing]);
+  }, [
+    canvasStore.objects,
+    canvasStore.currentObject,
+    canvasStore.canvasBackgroundColor,
+    toolStore.isDrawing,
+    drawObject,
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
