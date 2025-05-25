@@ -126,8 +126,34 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
           );
           ctx.stroke();
         }
+        break;
+
+      case ToolTypes.Rectangle:
+        if (obj.width && obj.height) {
+          ctx.strokeRect(obj.x!, obj.y!, obj.width, obj.height);
+        }
+        break;
+
+      case ToolTypes.Ellipse:
+        if (obj.width && obj.height) {
+          ctx.beginPath();
+
+          // Convert rectangle bounds to ellipse center and radii
+          ctx.ellipse(
+            obj.x! + obj.width / 2, // center X
+            obj.y! + obj.height / 2, // center Y
+            Math.abs(obj.width) / 2, // radius X
+            Math.abs(obj.height) / 2, // radius Y
+            0, // rotation
+            0, // start
+            2 * Math.PI // end angle
+          );
+          ctx.stroke();
+        }
+        break;
     }
 
+    // Restore canvas state (cleanup)
     ctx.restore();
   };
 
