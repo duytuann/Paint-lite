@@ -1,9 +1,10 @@
 import {makeAutoObservable} from "mobx";
-import {DEFAULT_CANVAS_BACKGROUND_COLOR} from "@/constants/colors";
+import {DEFAULT_CANVAS_BACKGROUND_COLOR, STORAGE_KEY} from "@/constants";
+import type {ToolType} from "@/types";
 
 export interface DrawingObject {
   id: string;
-  type: "rectangle" | "ellipse" | "arrow" | "line" | "draw";
+  type: ToolType;
   x: number;
   y: number;
   width?: number;
@@ -38,6 +39,7 @@ export class CanvasStore {
 
   constructor() {
     makeAutoObservable(this);
+    this.loadFromStorage();
   }
 
   // Actions
@@ -48,28 +50,54 @@ export class CanvasStore {
 
   setCanvasBackgroundColor = (color: string) => {
     this.canvasBackgroundColor = color;
+    this.saveToStorage();
   };
 
   addObject = (object: DrawingObject) => {
     this.objects.push(object);
+    this.saveToStorage();
   };
 
   removeObject = (id: string) => {
     this.objects = this.objects.filter((obj) => obj.id !== id);
-  };
-
-  updateObject = (id: string, updates: Partial<DrawingObject>) => {
-    const index = this.objects.findIndex((obj) => obj.id === id);
-    if (index !== -1) {
-      this.objects[index] = {...this.objects[index], ...updates};
-    }
+    this.saveToStorage();
   };
 
   clearCanvas = () => {
     this.objects = [];
+    this.saveToStorage();
   };
 
   setCurrentObject = (object: Partial<DrawingObject> | null) => {
     this.currentObject = object;
+  };
+
+  // Storage methods
+  saveToStorage = () => {
+    try {
+      const data = {
+        objects: this.objects,
+        canvasBackgroundColor: this.canvasBackgroundColor,
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (error) {
+      console.warn("Failed to save canvas to localStorage:", error);
+    }
+  };
+
+  loadFromStorage = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+
+      if (saved) {
+        const data = JSON.parse(saved);
+        this.objects = data.objects || [];
+        this.canvasBackgroundColor =
+          data.canvasBackgroundColor || DEFAULT_CANVAS_BACKGROUND_COLOR;
+      }
+    } catch (error) {
+      console.warn("Failed to load canvas from localStorage:", error);
+    }
   };
 }

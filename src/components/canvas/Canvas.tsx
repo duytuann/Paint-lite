@@ -2,9 +2,9 @@ import React, {useRef, useEffect, useCallback} from "react";
 import {observer} from "mobx-react-lite";
 import {useToolStore, useCanvasStore} from "@/store";
 import type {ToolType} from "@/types/tools";
-import {ToolTypes} from "@/constants";
+import {ToolTypes, TRANSPARENT} from "@/constants";
 import type {DrawingObject} from "@/store/CanvasStore";
-import {TRANSPARENT} from "@/constants/colors";
+import {generateUUIDv4} from "@/utils";
 
 import "./Canvas.css";
 
@@ -34,7 +34,7 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
     const pos = getMousePos(e);
 
     const newObject: Partial<DrawingObject> = {
-      id: "temp",
+      id: generateUUIDv4(),
       type: activeTool as DrawingObject["type"],
       x: pos.x,
       y: pos.y,
@@ -77,102 +77,107 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
     toolStore.stopDrawing();
   };
 
-  const drawObject = useCallback((
-    ctx: CanvasRenderingContext2D,
-    obj: Partial<DrawingObject>
-  ) => {
-    // Save canvas state to restore later
-    ctx.save();
+  const drawObject = useCallback(
+    (ctx: CanvasRenderingContext2D, obj: Partial<DrawingObject>) => {
+      // Save canvas state to restore later
+      ctx.save();
 
-    // Apply drawing styles (color, width, opacity)
-    ctx.strokeStyle = obj.strokeColor || toolStore.currentStrokeStyle;
-    ctx.fillStyle = obj.backgroundColor || toolStore.currentBackgroundStyle;
-    ctx.lineWidth = obj.strokeWidth || toolStore.strokeWidth;
-    ctx.globalAlpha = (obj.opacity || toolStore.opacity) / 100;
+      // Apply drawing styles (color, width, opacity)
+      ctx.strokeStyle = obj.strokeColor || toolStore.currentStrokeStyle;
+      ctx.fillStyle = obj.backgroundColor || toolStore.currentBackgroundStyle;
+      ctx.lineWidth = obj.strokeWidth || toolStore.strokeWidth;
+      ctx.globalAlpha = (obj.opacity || toolStore.opacity) / 100;
 
-    switch (obj.type) {
-      case ToolTypes.Draw:
-        if (obj.points && obj.points.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(obj.points[0].x, obj.points[0].y);
-          for (let i = 1; i < obj.points.length; i++) {
-            ctx.lineTo(obj.points[i].x, obj.points[i].y);
+      switch (obj.type) {
+        case ToolTypes.Draw:
+          if (obj.points && obj.points.length > 1) {
+            ctx.beginPath();
+            ctx.moveTo(obj.points[0].x, obj.points[0].y);
+            for (let i = 1; i < obj.points.length; i++) {
+              ctx.lineTo(obj.points[i].x, obj.points[i].y);
+            }
+            ctx.stroke();
           }
-          ctx.stroke();
-        }
-        break;
+          break;
 
-      case ToolTypes.Line:
-        ctx.beginPath();
-        ctx.moveTo(obj.x!, obj.y!); // Start point
-        ctx.lineTo(obj.endX || obj.x!, obj.endY || obj.y!); // End point
-        ctx.stroke();
-        break;
-
-      case ToolTypes.Arrow:
-        // Draw arrow shaft
-        ctx.beginPath();
-        ctx.moveTo(obj.x!, obj.y!);
-        ctx.lineTo(obj.endX || obj.x!, obj.endY || obj.y!);
-        ctx.stroke();
-
-        // Draw arrowhead (two angled lines)
-        if (obj.endX && obj.endY) {
-          const angle = Math.atan2(obj.endY - obj.y!, obj.endX - obj.x!);
-          const headLength = 8;
-
+        case ToolTypes.Line:
           ctx.beginPath();
-          // First arrowhead line (30 degree counter-clockwise)
-          ctx.moveTo(obj.endX, obj.endY);
-          ctx.lineTo(
-            obj.endX - headLength * Math.cos(angle - Math.PI / 6),
-            obj.endY - headLength * Math.sin(angle - Math.PI / 6)
-          );
-          // Second arrowhead line (30 degree clockwise)
-          ctx.moveTo(obj.endX, obj.endY);
-          ctx.lineTo(
-            obj.endX - headLength * Math.cos(angle + Math.PI / 6),
-            obj.endY - headLength * Math.sin(angle + Math.PI / 6)
-          );
+          ctx.moveTo(obj.x!, obj.y!); // Start point
+          ctx.lineTo(obj.endX || obj.x!, obj.endY || obj.y!); // End point
           ctx.stroke();
-        }
-        break;
+          break;
 
-      case ToolTypes.Rectangle:
-        if (obj.width && obj.height) {
-          if (obj.backgroundColor !== TRANSPARENT) {
-            ctx.fillRect(obj.x!, obj.y!, obj.width, obj.height);
-          }
-          ctx.strokeRect(obj.x!, obj.y!, obj.width, obj.height);
-        }
-        break;
-
-      case ToolTypes.Ellipse:
-        if (obj.width && obj.height) {
+        case ToolTypes.Arrow:
+          // Draw arrow shaft
           ctx.beginPath();
-
-          // Convert rectangle bounds to ellipse center and radii
-          ctx.ellipse(
-            obj.x! + obj.width / 2, // center X
-            obj.y! + obj.height / 2, // center Y
-            Math.abs(obj.width) / 2, // radius X
-            Math.abs(obj.height) / 2, // radius Y
-            0, // rotation
-            0, // start
-            2 * Math.PI // end angle
-          );
-          if (obj.backgroundColor !== TRANSPARENT) {
-            ctx.fill();
-          }
-
+          ctx.moveTo(obj.x!, obj.y!);
+          ctx.lineTo(obj.endX || obj.x!, obj.endY || obj.y!);
           ctx.stroke();
-        }
-        break;
-    }
 
-    // Restore canvas state (cleanup)
-    ctx.restore();
-  }, [toolStore.currentStrokeStyle, toolStore.currentBackgroundStyle, toolStore.strokeWidth, toolStore.opacity]);
+          // Draw arrowhead (two angled lines)
+          if (obj.endX && obj.endY) {
+            const angle = Math.atan2(obj.endY - obj.y!, obj.endX - obj.x!);
+            const headLength = 8;
+
+            ctx.beginPath();
+            // First arrowhead line (30 degree counter-clockwise)
+            ctx.moveTo(obj.endX, obj.endY);
+            ctx.lineTo(
+              obj.endX - headLength * Math.cos(angle - Math.PI / 6),
+              obj.endY - headLength * Math.sin(angle - Math.PI / 6)
+            );
+            // Second arrowhead line (30 degree clockwise)
+            ctx.moveTo(obj.endX, obj.endY);
+            ctx.lineTo(
+              obj.endX - headLength * Math.cos(angle + Math.PI / 6),
+              obj.endY - headLength * Math.sin(angle + Math.PI / 6)
+            );
+            ctx.stroke();
+          }
+          break;
+
+        case ToolTypes.Rectangle:
+          if (obj.width && obj.height) {
+            if (obj.backgroundColor !== TRANSPARENT) {
+              ctx.fillRect(obj.x!, obj.y!, obj.width, obj.height);
+            }
+            ctx.strokeRect(obj.x!, obj.y!, obj.width, obj.height);
+          }
+          break;
+
+        case ToolTypes.Ellipse:
+          if (obj.width && obj.height) {
+            ctx.beginPath();
+
+            // Convert rectangle bounds to ellipse center and radii
+            ctx.ellipse(
+              obj.x! + obj.width / 2, // center X
+              obj.y! + obj.height / 2, // center Y
+              Math.abs(obj.width) / 2, // radius X
+              Math.abs(obj.height) / 2, // radius Y
+              0, // rotation
+              0, // start
+              2 * Math.PI // end angle
+            );
+            if (obj.backgroundColor !== TRANSPARENT) {
+              ctx.fill();
+            }
+
+            ctx.stroke();
+          }
+          break;
+      }
+
+      // Restore canvas state (cleanup)
+      ctx.restore();
+    },
+    [
+      toolStore.currentStrokeStyle,
+      toolStore.currentBackgroundStyle,
+      toolStore.strokeWidth,
+      toolStore.opacity,
+    ]
+  );
 
   useEffect(() => {
     const redrawCanvas = () => {
@@ -211,6 +216,8 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
   ]);
 
   useEffect(() => {
+    canvasStore.loadFromStorage();
+
     const canvas = canvasRef.current;
     const container = containerRef.current;
 
