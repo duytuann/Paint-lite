@@ -73,26 +73,6 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
     toolStore.stopDrawing();
   };
 
-  const redrawCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw all saved objects
-    canvasStore.objects.forEach((obj) => {
-      drawObject(ctx, obj);
-    });
-
-    // Draw current preview object
-    if (canvasStore.currentObject && toolStore.isDrawing) {
-      drawObject(ctx, canvasStore.currentObject);
-    }
-  };
-
   const drawObject = (
     ctx: CanvasRenderingContext2D,
     obj: Partial<DrawingObject>
@@ -110,12 +90,38 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
           ctx.stroke();
         }
         break;
+
+      case ToolTypes.Line:
+        ctx.beginPath();
+        ctx.moveTo(obj.x!, obj.y!);
+        ctx.lineTo(obj.endX || obj.x!, obj.endY || obj.y!);
+        ctx.stroke();
+        break;
     }
 
     ctx.restore();
   };
 
   useEffect(() => {
+    const redrawCanvas = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw all saved objects
+      canvasStore.objects.forEach((obj) => {
+        drawObject(ctx, obj);
+      });
+
+      // Draw current preview object
+      if (canvasStore.currentObject && toolStore.isDrawing) {
+        drawObject(ctx, canvasStore.currentObject);
+      }
+    };
     redrawCanvas();
   }, [canvasStore.objects, canvasStore.currentObject, toolStore.isDrawing]);
 
