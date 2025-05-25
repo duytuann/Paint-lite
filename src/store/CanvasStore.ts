@@ -72,6 +72,11 @@ export class CanvasStore {
     this.currentObject = object;
   };
 
+  // Computed values
+  get objectCount() {
+    return this.objects.length;
+  }
+
   // Storage methods
   saveToStorage = () => {
     try {
