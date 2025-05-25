@@ -109,7 +109,7 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
         // Draw arrowhead (two angled lines)
         if (obj.endX && obj.endY) {
           const angle = Math.atan2(obj.endY - obj.y!, obj.endX - obj.x!);
-          const headLength = 15;
+          const headLength = 8;
 
           ctx.beginPath();
           // First arrowhead line (30 degree counter-clockwise)

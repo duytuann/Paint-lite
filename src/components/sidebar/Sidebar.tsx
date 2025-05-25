@@ -1,34 +1,33 @@
-import React from "react";
+import {observer} from "mobx-react-lite";
+import {useToolStore} from "@/store";
+import {STROKE_COLORS, BACKGROUND_COLORS} from "@/constants/colors";
 import "./Sidebar.css";
+import ColorPicker from "@/components/color-picker/ColorPicker";
 
-const Sidebar: React.FC = () => {
+const Sidebar = observer(() => {
+  const toolStore = useToolStore();
+
   return (
     <div className="sidebar">
       <div className="sidebar-content">
         {/* Stroke Section */}
         <div className="sidebar-section">
-          <h3 className="sidebar-title">Stroke</h3>
-          <div className="color-palette">
-            <div className="color-item color-black active"></div>
-            <div className="color-item color-red"></div>
-            <div className="color-item color-green"></div>
-            <div className="color-item color-blue"></div>
-            <div className="color-item color-orange"></div>
-            <div className="color-item color-custom-red"></div>
-          </div>
+          <ColorPicker
+            currentColor={toolStore.strokeColor}
+            onColorChange={toolStore.setStrokeColor}
+            label="Stroke"
+            colors={STROKE_COLORS}
+          />
         </div>
 
         {/* Background Section */}
         <div className="sidebar-section">
-          <h3 className="sidebar-title">Background</h3>
-          <div className="color-palette">
-            <div className="color-item color-transparent active"></div>
-            <div className="color-item color-light-pink"></div>
-            <div className="color-item color-light-green"></div>
-            <div className="color-item color-light-blue"></div>
-            <div className="color-item color-light-yellow"></div>
-            <div className="color-item color-light-red"></div>
-          </div>
+          <ColorPicker
+            currentColor={toolStore.backgroundColor}
+            onColorChange={toolStore.setBackgroundColor}
+            label="Background"
+            colors={BACKGROUND_COLORS}
+          />
         </div>
 
         {/* Stroke Width Section */}
@@ -67,6 +66,6 @@ const Sidebar: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default Sidebar;
