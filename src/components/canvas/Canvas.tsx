@@ -77,6 +77,7 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
     ctx: CanvasRenderingContext2D,
     obj: Partial<DrawingObject>
   ) => {
+    // Save canvas state to restore later
     ctx.save();
 
     switch (obj.type) {
@@ -93,10 +94,38 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
 
       case ToolTypes.Line:
         ctx.beginPath();
+        ctx.moveTo(obj.x!, obj.y!); // Start point
+        ctx.lineTo(obj.endX || obj.x!, obj.endY || obj.y!); // End point
+        ctx.stroke();
+        break;
+
+      case ToolTypes.Arrow:
+        // Draw arrow shaft
+        ctx.beginPath();
         ctx.moveTo(obj.x!, obj.y!);
         ctx.lineTo(obj.endX || obj.x!, obj.endY || obj.y!);
         ctx.stroke();
-        break;
+
+        // Draw arrowhead (two angled lines)
+        if (obj.endX && obj.endY) {
+          const angle = Math.atan2(obj.endY - obj.y!, obj.endX - obj.x!);
+          const headLength = 15;
+
+          ctx.beginPath();
+          // First arrowhead line (30 degree counter-clockwise)
+          ctx.moveTo(obj.endX, obj.endY);
+          ctx.lineTo(
+            obj.endX - headLength * Math.cos(angle - Math.PI / 6),
+            obj.endY - headLength * Math.sin(angle - Math.PI / 6)
+          );
+          // Second arrowhead line (30 degree clockwise)
+          ctx.moveTo(obj.endX, obj.endY);
+          ctx.lineTo(
+            obj.endX - headLength * Math.cos(angle + Math.PI / 6),
+            obj.endY - headLength * Math.sin(angle + Math.PI / 6)
+          );
+          ctx.stroke();
+        }
     }
 
     ctx.restore();
