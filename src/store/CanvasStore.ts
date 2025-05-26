@@ -43,6 +43,9 @@ export class CanvasStore {
   panY = 0;
   showGrid = true;
 
+  // Canvas reference for export
+  canvasRef: HTMLCanvasElement | null = null;
+
   constructor() {
     makeAutoObservable(this);
     this.loadFromStorage();
@@ -57,6 +60,10 @@ export class CanvasStore {
   setCanvasBackgroundColor = (color: string) => {
     this.canvasBackgroundColor = color;
     this.saveToStorage();
+  };
+
+  setCanvasRef = (ref: HTMLCanvasElement | null) => {
+    this.canvasRef = ref;
   };
 
   addObject = (object: DrawingObject) => {
@@ -104,6 +111,39 @@ export class CanvasStore {
       }
     } catch (error) {
       console.warn("Failed to load canvas from localStorage:", error);
+    }
+  };
+
+  // Export canvas as image
+  exportAsImage = (filename = "drawing") => {
+    if (!this.canvasRef) {
+      console.error("Canvas reference not available for export");
+      return;
+    }
+
+    try {
+      // Create a temporary link element
+      const link = document.createElement("a");
+
+      // Convert canvas to blob
+      this.canvasRef.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          console.log(url);
+          link.href = url;
+          link.download = `${filename}.png`;
+
+          // Trigger download
+          document.body.appendChild(link);
+          link.click();
+
+          // Cleanup
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+      }, "image/png");
+    } catch (error) {
+      console.error("Failed to export canvas:", error);
     }
   };
 }

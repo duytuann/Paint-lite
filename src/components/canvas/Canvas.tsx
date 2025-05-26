@@ -236,6 +236,9 @@ const Canvas = observer(() => {
 
     if (!canvas || !container) return;
 
+    // Set canvas ref in store for export functionality
+    canvasStore.setCanvasRef(canvas);
+
     const resizeCanvas = () => {
       const rect = container.getBoundingClientRect();
       canvas.width = rect.width;
@@ -247,6 +250,7 @@ const Canvas = observer(() => {
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
+      canvasStore.setCanvasRef(null);
     };
   }, [canvasStore]);
 
