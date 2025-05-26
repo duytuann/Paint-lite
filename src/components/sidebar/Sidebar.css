@@ -1,7 +1,7 @@
 .sidebar {
   position: fixed;
   left: 20px;
-  top: 270px;
+  top: 320px;
   transform: translateY(-50%);
   width: 240px;
   background: rgba(255, 255, 255, 0.95);
