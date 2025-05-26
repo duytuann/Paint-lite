@@ -7,7 +7,7 @@ export enum StrokeWidth {
 // Default tool settings
 export const DEFAULT_STROKE_COLOR = "#000000";
 export const DEFAULT_BACKGROUND_COLOR = "transparent";
-export const DEFAULT_CANVAS_BACKGROUND_COLOR = "transparent";
+export const DEFAULT_CANVAS_BACKGROUND_COLOR = "#ffffff";
 export const DEFAULT_STROKE_WIDTH = StrokeWidth.MEDIUM;
 export const DEFAULT_OPACITY = 100;
 

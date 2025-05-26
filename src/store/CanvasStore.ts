@@ -58,11 +58,6 @@ export class CanvasStore {
     this.saveToStorage();
   };
 
-  removeObject = (id: string) => {
-    this.objects = this.objects.filter((obj) => obj.id !== id);
-    this.saveToStorage();
-  };
-
   clearCanvas = () => {
     this.objects = [];
     this.saveToStorage();
