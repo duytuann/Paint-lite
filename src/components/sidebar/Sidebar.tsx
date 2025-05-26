@@ -5,19 +5,29 @@ import {
   BACKGROUND_COLORS,
   CANVAS_BACKGROUND_COLORS,
   StrokeWidth,
-} from "@/constants/colors";
-import "./Sidebar.css";
+  StrokeStyle,
+} from "@/constants";
 import ColorPicker from "@/components/color-picker/ColorPicker";
+import SolidIcon from "@/assets/icons/solid.svg?react";
+import DashedIcon from "@/assets/icons/dashed.svg?react";
+import DottedIcon from "@/assets/icons/dotted.svg?react";
+import "./Sidebar.css";
+
+const strokeWidthOptions = [
+  {width: StrokeWidth.THIN, className: "stroke-thin"},
+  {width: StrokeWidth.MEDIUM, className: "stroke-medium"},
+  {width: StrokeWidth.THICK, className: "stroke-thick"},
+];
+
+const strokeStyleOptions = [
+  {style: StrokeStyle.SOLID, name: "Solid", icon: SolidIcon},
+  {style: StrokeStyle.DASHED, name: "Dashed", icon: DashedIcon},
+  {style: StrokeStyle.DOTTED, name: "Dotted", icon: DottedIcon},
+];
 
 const Sidebar = observer(() => {
   const toolStore = useToolStore();
   const canvasStore = useCanvasStore();
-
-  const strokeWidthOptions = [
-    {width: StrokeWidth.THIN, className: "stroke-thin"},
-    {width: StrokeWidth.MEDIUM, className: "stroke-medium"},
-    {width: StrokeWidth.THICK, className: "stroke-thick"},
-  ];
 
   return (
     <div className="sidebar">
@@ -55,6 +65,27 @@ const Sidebar = observer(() => {
                 onClick={() => toolStore.setStrokeWidth(width)}
               >
                 <div className={`stroke-line ${className}`}></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Stroke Style Section */}
+        <div className="sidebar-section">
+          <h3 className="sidebar-title">Stroke style</h3>
+          <div className="stroke-style-options">
+            {strokeStyleOptions.map(({style, name, icon: IconComponent}) => (
+              <div
+                key={style}
+                className={`stroke-style-option ${
+                  toolStore.strokeStyle === style ? "active" : ""
+                }`}
+                onClick={() => toolStore.setStrokeStyle(style)}
+                title={name}
+              >
+                <div className="stroke-style-icon">
+                  <IconComponent />
+                </div>
               </div>
             ))}
           </div>

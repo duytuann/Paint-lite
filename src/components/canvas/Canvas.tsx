@@ -2,7 +2,7 @@ import React, {useRef, useEffect, useCallback} from "react";
 import {observer} from "mobx-react-lite";
 import {useToolStore, useCanvasStore} from "@/store";
 import type {ToolType} from "@/types/tools";
-import {ToolTypes, TRANSPARENT} from "@/constants";
+import {StrokeStyle, ToolTypes, TRANSPARENT} from "@/constants";
 import type {DrawingObject} from "@/store/CanvasStore";
 import {generateUUIDv4} from "@/utils";
 
@@ -41,6 +41,7 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
       points: activeTool === ToolTypes.Draw ? [pos] : undefined,
       strokeColor: toolStore.strokeColor,
       strokeWidth: toolStore.strokeWidth,
+      strokeStyle: toolStore.strokeStyle,
       backgroundColor: toolStore.backgroundColor,
       opacity: toolStore.opacity,
     };
@@ -87,6 +88,22 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
       ctx.fillStyle = obj.backgroundColor || toolStore.currentBackgroundStyle;
       ctx.lineWidth = obj.strokeWidth || toolStore.strokeWidth;
       ctx.globalAlpha = (obj.opacity || toolStore.opacity) / 100;
+
+      // Apply stroke style (dash pattern)
+      const strokeStyle = obj.strokeStyle || toolStore.strokeStyle;
+      switch (strokeStyle) {
+        case StrokeStyle.DASHED:
+          ctx.setLineDash([10, 5]);
+          break;
+        case StrokeStyle.DOTTED:
+          ctx.setLineDash([2, 3]);
+          break;
+        case StrokeStyle.SOLID:
+          ctx.setLineDash([]);
+          break;
+        default:
+          ctx.setLineDash([]); // Solid
+      }
 
       switch (obj.type) {
         case ToolTypes.Draw:
@@ -176,6 +193,7 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
       toolStore.currentBackgroundStyle,
       toolStore.strokeWidth,
       toolStore.opacity,
+      toolStore.strokeStyle,
     ]
   );
 

@@ -72,6 +72,32 @@
   height: 4px;
 }
 
+.stroke-style-options {
+  display: flex;
+  gap: 8px;
+}
+
+.stroke-style-option {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.stroke-style-option.active {
+  background: #e0dfff;
+}
+
+.stroke-style-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Opacity Slider */
 .opacity-slider {
   width: 100%;

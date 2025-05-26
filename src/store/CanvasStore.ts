@@ -1,5 +1,10 @@
 import {makeAutoObservable} from "mobx";
-import {DEFAULT_CANVAS_BACKGROUND_COLOR, STORAGE_KEY} from "@/constants";
+import {
+  DEFAULT_CANVAS_BACKGROUND_COLOR,
+  STORAGE_KEY,
+  StrokeStyle,
+  StrokeWidth,
+} from "@/constants";
 import type {ToolType} from "@/types";
 
 export interface DrawingObject {
@@ -13,7 +18,8 @@ export interface DrawingObject {
   endY?: number;
   points?: Array<{x: number; y: number}>;
   strokeColor?: string;
-  strokeWidth?: number;
+  strokeWidth?: StrokeWidth;
+  strokeStyle?: StrokeStyle;
   backgroundColor?: string;
   opacity?: number;
 }
