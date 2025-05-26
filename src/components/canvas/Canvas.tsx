@@ -1,18 +1,13 @@
 import React, {useRef, useEffect, useCallback} from "react";
 import {observer} from "mobx-react-lite";
 import {useToolStore, useCanvasStore} from "@/store";
-import type {ToolType} from "@/types/tools";
 import {StrokeStyle, ToolTypes, TRANSPARENT} from "@/constants";
 import type {DrawingObject} from "@/store/CanvasStore";
 import {generateUUIDv4} from "@/utils";
 
 import "./Canvas.css";
 
-interface CanvasProps {
-  activeTool: ToolType;
-}
-
-const Canvas = observer(({activeTool}: CanvasProps) => {
+const Canvas = observer(() => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const toolStore = useToolStore();
@@ -35,10 +30,10 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
 
     const newObject: Partial<DrawingObject> = {
       id: generateUUIDv4(),
-      type: activeTool as DrawingObject["type"],
+      type: toolStore.activeTool as DrawingObject["type"],
       x: pos.x,
       y: pos.y,
-      points: activeTool === ToolTypes.Draw ? [pos] : undefined,
+      points: toolStore.activeTool === ToolTypes.Draw ? [pos] : undefined,
       strokeColor: toolStore.strokeColor,
       strokeWidth: toolStore.strokeWidth,
       strokeStyle: toolStore.strokeStyle,
@@ -55,7 +50,7 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
     const pos = getMousePos(e);
     const current = canvasStore.currentObject;
 
-    if (activeTool == ToolTypes.Draw) {
+    if (toolStore.activeTool == ToolTypes.Draw) {
       const points = current.points || [];
       points.push(pos);
       canvasStore.setCurrentObject({...current, points});
@@ -260,7 +255,7 @@ const Canvas = observer(({activeTool}: CanvasProps) => {
       <canvas
         ref={canvasRef}
         className="canvas"
-        data-tool={activeTool}
+        data-tool={toolStore.activeTool}
         onMouseDown={startDrawing}
         onMouseMove={draw}
         onMouseUp={stopDrawing}

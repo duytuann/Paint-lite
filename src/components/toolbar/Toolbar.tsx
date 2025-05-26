@@ -1,14 +1,11 @@
-import React from "react";
+import {observer} from "mobx-react-lite";
 import {TOOLS, MAIN_TOOLS} from "@/constants/tools";
-import type {ToolType} from "@/types/tools";
+import {useToolStore} from "@/store";
 import "./Toolbar.css";
 
-interface ToolbarProps {
-  activeTool: ToolType;
-  onToolChange: (tool: ToolType) => void;
-}
+const Toolbar = observer(() => {
+  const toolStore = useToolStore();
 
-const Toolbar: React.FC<ToolbarProps> = ({activeTool, onToolChange}) => {
   return (
     <div className="toolbar">
       <div className="toolbar-content">
@@ -21,9 +18,9 @@ const Toolbar: React.FC<ToolbarProps> = ({activeTool, onToolChange}) => {
               <button
                 key={tool.id}
                 className={`toolbar-button tool-button ${
-                  activeTool === tool.id ? "active" : ""
+                  toolStore.activeTool === tool.id ? "active" : ""
                 }`}
-                onClick={() => onToolChange(tool.id)}
+                onClick={() => toolStore.setActiveTool(tool.id)}
                 title={tool.description}
               >
                 <IconComponent className="tool-icon" size={16} />
@@ -34,6 +31,6 @@ const Toolbar: React.FC<ToolbarProps> = ({activeTool, onToolChange}) => {
       </div>
     </div>
   );
-};
+});
 
 export default Toolbar;
