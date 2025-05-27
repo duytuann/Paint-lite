@@ -43,15 +43,6 @@
   color: #6366f1;
 }
 
-.menu-button {
-  margin-right: 8px;
-}
-
-.menu-icon {
-  font-size: 18px;
-  color: #374151;
-}
-
 .toolbar-tools {
   display: flex;
   align-items: center;
@@ -70,12 +61,6 @@
 
 .toolbar-button.active .tool-icon {
   color: #6366f1;
-}
-
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 2px;
 }
 
 .toolbar-divider {

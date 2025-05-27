@@ -37,12 +37,6 @@ export class CanvasStore {
 
   currentObject: Partial<DrawingObject> | null = null;
 
-  // Canvas settings
-  zoom = 1;
-  panX = 0;
-  panY = 0;
-  showGrid = true;
-
   // Canvas reference for export
   canvasRef: HTMLCanvasElement | null = null;
 

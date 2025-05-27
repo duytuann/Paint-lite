@@ -1,7 +1,20 @@
 import type {Tool, ToolType} from "@/types/tools";
-import {Square, Circle, MoveRight, Minus, Pencil} from "lucide-react";
+import {
+  Square,
+  Circle,
+  MoveRight,
+  Minus,
+  Pencil,
+  MousePointer,
+} from "lucide-react";
 
 export const TOOLS: Record<ToolType, Tool> = {
+  selection: {
+    id: "selection",
+    name: "Selection",
+    icon: MousePointer,
+    description: "Select object",
+  },
   rectangle: {
     id: "rectangle",
     name: "Rectangle",
@@ -34,16 +47,8 @@ export const TOOLS: Record<ToolType, Tool> = {
   },
 };
 
-// Main tools to display in toolbar (in order)
-export const MAIN_TOOLS: ToolType[] = [
-  "rectangle",
-  "ellipse",
-  "arrow",
-  "line",
-  "draw",
-];
-
 export enum ToolTypes {
+  Selection = "selection",
   Rectangle = "rectangle",
   Ellipse = "ellipse",
   Arrow = "arrow",
@@ -51,4 +56,14 @@ export enum ToolTypes {
   Draw = "draw",
 }
 
-export const DEFAULT_TOOL: ToolType = "rectangle";
+// Main tools to display in toolbar (in order)
+export const MAIN_TOOLS: ToolType[] = [
+  ToolTypes.Selection,
+  ToolTypes.Rectangle,
+  ToolTypes.Ellipse,
+  ToolTypes.Arrow,
+  ToolTypes.Line,
+  ToolTypes.Draw,
+];
+
+export const DEFAULT_TOOL: ToolType = ToolTypes.Selection;

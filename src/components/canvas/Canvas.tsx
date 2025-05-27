@@ -25,6 +25,9 @@ const Canvas = observer(() => {
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // Don't start drawing if selection tool is active
+    if (toolStore.activeTool === ToolTypes.Selection) return;
+    
     toolStore.startDrawing();
     const pos = getMousePos(e);
 
@@ -46,6 +49,7 @@ const Canvas = observer(() => {
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!toolStore.isDrawing || !canvasStore.currentObject) return;
+    if (toolStore.activeTool === ToolTypes.Selection) return;
 
     const pos = getMousePos(e);
     const current = canvasStore.currentObject;
@@ -67,6 +71,7 @@ const Canvas = observer(() => {
 
   const stopDrawing = () => {
     if (!toolStore.isDrawing || !canvasStore.currentObject) return;
+    if (toolStore.activeTool === ToolTypes.Selection) return;
 
     canvasStore.addObject(canvasStore.currentObject as DrawingObject);
     canvasStore.setCurrentObject(null);
