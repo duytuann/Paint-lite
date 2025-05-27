@@ -13,7 +13,7 @@ const Canvas = observer(() => {
   const toolStore = useToolStore();
   const canvasStore = useCanvasStore();
 
-  const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getMousePos = (e: MouseEvent | React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return {x: 0, y: 0};
 
@@ -27,7 +27,7 @@ const Canvas = observer(() => {
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     // Don't start drawing if selection tool is active
     if (toolStore.activeTool === ToolTypes.Selection) return;
-    
+
     toolStore.startDrawing();
     const pos = getMousePos(e);
 
@@ -47,36 +47,60 @@ const Canvas = observer(() => {
     canvasStore.setCurrentObject(newObject);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!toolStore.isDrawing || !canvasStore.currentObject) return;
-    if (toolStore.activeTool === ToolTypes.Selection) return;
+  const draw = useCallback(
+    (e: MouseEvent) => {
+      if (!toolStore.isDrawing || !canvasStore.currentObject) return;
+      if (toolStore.activeTool === ToolTypes.Selection) return;
 
-    const pos = getMousePos(e);
-    const current = canvasStore.currentObject;
+      const pos = getMousePos(e);
+      const current = canvasStore.currentObject;
 
-    if (toolStore.activeTool == ToolTypes.Draw) {
-      const points = current.points || [];
-      points.push(pos);
-      canvasStore.setCurrentObject({...current, points});
-    } else {
-      canvasStore.setCurrentObject({
-        ...current,
-        width: pos.x - current.x!,
-        height: pos.y - current.y!,
-        endX: pos.x,
-        endY: pos.y,
-      });
-    }
-  };
+      if (toolStore.activeTool == ToolTypes.Draw) {
+        const points = current.points || [];
+        points.push(pos);
+        canvasStore.setCurrentObject({...current, points});
+      } else {
+        canvasStore.setCurrentObject({
+          ...current,
+          width: pos.x - current.x!,
+          height: pos.y - current.y!,
+          endX: pos.x,
+          endY: pos.y,
+        });
+      }
+    },
+    [toolStore.isDrawing, toolStore.activeTool, canvasStore]
+  );
 
-  const stopDrawing = () => {
+  const stopDrawing = useCallback(() => {
     if (!toolStore.isDrawing || !canvasStore.currentObject) return;
     if (toolStore.activeTool === ToolTypes.Selection) return;
 
     canvasStore.addObject(canvasStore.currentObject as DrawingObject);
     canvasStore.setCurrentObject(null);
     toolStore.stopDrawing();
-  };
+  }, [canvasStore, toolStore]);
+
+  // Add document-level event listeners for mouse move and mouse up
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      draw(e);
+    };
+
+    const handleMouseUp = () => {
+      stopDrawing();
+    };
+
+    if (toolStore.isDrawing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [toolStore.isDrawing, draw, stopDrawing]);
 
   const drawObject = useCallback(
     (ctx: CanvasRenderingContext2D, obj: Partial<DrawingObject>) => {
@@ -188,75 +212,73 @@ const Canvas = observer(() => {
       // Restore canvas state (cleanup)
       ctx.restore();
     },
-    [
-      toolStore.currentStrokeStyle,
-      toolStore.currentBackgroundStyle,
-      toolStore.strokeWidth,
-      toolStore.opacity,
-      toolStore.strokeStyle,
-    ]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
+  // Separate effect for canvas redrawing - optimized dependencies
   useEffect(() => {
-    const redrawCanvas = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Apply canvas background color
-      if (canvasStore.canvasBackgroundColor !== TRANSPARENT) {
-        ctx.fillStyle = canvasStore.canvasBackgroundColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
+    // Apply canvas background color
+    if (canvasStore.canvasBackgroundColor !== TRANSPARENT) {
+      ctx.fillStyle = canvasStore.canvasBackgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
-      // Draw all saved objects
-      canvasStore.objects.forEach((obj) => {
-        drawObject(ctx, obj);
-      });
+    // Draw all saved objects
+    canvasStore.objects.forEach((obj) => {
+      drawObject(ctx, obj);
+    });
 
-      // Draw current preview object
-      if (canvasStore.currentObject && toolStore.isDrawing) {
-        drawObject(ctx, canvasStore.currentObject);
-      }
-    };
-    redrawCanvas();
+    // Draw current preview object only when actively drawing
+    if (canvasStore.currentObject && toolStore.isDrawing) {
+      drawObject(ctx, canvasStore.currentObject);
+    }
   }, [
     canvasStore.objects,
-    canvasStore.currentObject,
     canvasStore.canvasBackgroundColor,
+    canvasStore.currentObject,
     toolStore.isDrawing,
     drawObject,
   ]);
 
+  // Setup effect - runs only once on mount
   useEffect(() => {
-    canvasStore.loadFromStorage();
+    const handleSetup = () => {
+      canvasStore.loadFromStorage();
 
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
+      const canvas = canvasRef.current;
+      const container = containerRef.current;
 
-    if (!canvas || !container) return;
+      if (!canvas || !container) return;
 
-    // Set canvas ref in store for export functionality
-    canvasStore.setCanvasRef(canvas);
+      // Set canvas ref in store for export functionality
+      canvasStore.setCanvasRef(canvas);
 
-    const resizeCanvas = () => {
-      const rect = container.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+      const resizeCanvas = () => {
+        const rect = container.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      };
+
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      return () => {
+        window.removeEventListener("resize", resizeCanvas);
+        canvasStore.setCanvasRef(null);
+      };
     };
 
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      canvasStore.setCanvasRef(null);
-    };
+    return handleSetup();
   }, [canvasStore]);
 
   return (
@@ -266,9 +288,6 @@ const Canvas = observer(() => {
         className="canvas"
         data-tool={toolStore.activeTool}
         onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
       />
     </div>
   );

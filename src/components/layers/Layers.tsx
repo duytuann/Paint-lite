@@ -38,7 +38,7 @@ const Layers = observer(() => {
         {/* Objects list */}
         <div className="layers-list">
           {canvasStore.objects.length === 0 ? (
-            <div className="no-objects">No objects</div>
+            <div className="no-objects">No layers</div>
           ) : (
             canvasStore.objects.map((object, index) => {
               const IconComponent = getToolIcon(object.type);
