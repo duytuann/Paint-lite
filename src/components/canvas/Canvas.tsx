@@ -13,6 +13,9 @@ const Canvas = observer(() => {
   const toolStore = useToolStore();
   const canvasStore = useCanvasStore();
 
+  // Store loaded images to avoid re-rendering images
+  const imagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
+
   const getMousePos = (e: MouseEvent | React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return {x: 0, y: 0};
@@ -101,6 +104,27 @@ const Canvas = observer(() => {
       document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [toolStore.isDrawing, draw, stopDrawing]);
+
+  // Preload all images to ensure they're ready for rendering
+  const preloadImages = useCallback(() => {
+    canvasStore.objects.forEach((obj) => {
+      if (
+        obj.isImageType &&
+        obj.imageData &&
+        obj.id &&
+        !imagesRef.current.has(obj.id)
+      ) {
+        const img = new Image();
+        img.src = obj.imageData;
+        imagesRef.current.set(obj.id, img);
+      }
+    });
+  }, [canvasStore.objects]);
+
+  // Preload images when objects change
+  useEffect(() => {
+    preloadImages();
+  }, [preloadImages]);
 
   const drawObject = useCallback(
     (ctx: CanvasRenderingContext2D, obj: Partial<DrawingObject>) => {
@@ -209,34 +233,67 @@ const Canvas = observer(() => {
           break;
       }
 
-      if (obj.isImageType) {
-        if (
-          obj.imageData &&
-          typeof obj.width === "number" &&
-          typeof obj.height === "number"
-        ) {
-          const img = new Image();
-          img.src = obj.imageData;
-          const x = typeof obj.x === "number" ? obj.x : 0;
-          const y = typeof obj.y === "number" ? obj.y : 0;
-          const width = obj.width;
-          const height = obj.height;
-
-          if (img.complete) {
-            ctx.drawImage(img, x, y, width, height);
-          } else {
-            img.onload = () => {
-              ctx.drawImage(img, x, y, width, height);
-            };
-          }
-        }
-      }
-
       // Restore canvas state (cleanup)
       ctx.restore();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
+  );
+
+  // Draw image separately to ensure proper rendering
+  const drawImage = useCallback(
+    (ctx: CanvasRenderingContext2D, obj: Partial<DrawingObject>) => {
+      if (!obj.isImageType || !obj.id) return;
+
+      ctx.save();
+      ctx.globalAlpha = (obj.opacity || toolStore.opacity) / 100;
+
+      const x = typeof obj.x === "number" ? obj.x : 0;
+      const y = typeof obj.y === "number" ? obj.y : 0;
+      const width = obj.width || 0;
+      const height = obj.height || 0;
+
+      // Use cached image if available
+      if (imagesRef.current.has(obj.id)) {
+        const img = imagesRef.current.get(obj.id)!;
+        if (img.complete) {
+          ctx.drawImage(img, x, y, width, height);
+        }
+      } else if (obj.imageData) {
+        // Create and cache the image if not already cached
+        const img = new Image();
+        img.src = obj.imageData;
+        imagesRef.current.set(obj.id, img);
+
+        if (img.complete) {
+          ctx.drawImage(img, x, y, width, height);
+        } else {
+          img.onload = () => {
+            // Force a redraw when the image loads
+            const canvas = canvasRef.current;
+            const context = canvas?.getContext("2d");
+            if (context) {
+              ctx.drawImage(img, x, y, width, height);
+            }
+          };
+        }
+      }
+
+      ctx.restore();
+    },
+    [toolStore.opacity]
+  );
+
+  // Render a single object based on its type
+  const renderObject = useCallback(
+    (ctx: CanvasRenderingContext2D, obj: Partial<DrawingObject>) => {
+      if (obj.isImageType) {
+        drawImage(ctx, obj);
+      } else {
+        drawObject(ctx, obj);
+      }
+    },
+    [drawImage, drawObject]
   );
 
   // Separate effect for canvas redrawing - optimized dependencies
@@ -256,14 +313,14 @@ const Canvas = observer(() => {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // Draw all saved objects
+    // Draw all objects in their original order
     canvasStore.objects.forEach((obj) => {
-      drawObject(ctx, obj);
+      renderObject(ctx, obj);
     });
 
     // Draw current preview object only when actively drawing
     if (canvasStore.currentObject && toolStore.isDrawing) {
-      drawObject(ctx, canvasStore.currentObject);
+      renderObject(ctx, canvasStore.currentObject);
     }
   }, [
     canvasStore.objects,
@@ -271,7 +328,7 @@ const Canvas = observer(() => {
     canvasStore.currentObject,
     canvasStore.imageCount,
     toolStore.isDrawing,
-    drawObject,
+    renderObject,
   ]);
 
   // Setup effect - runs only once on mount
