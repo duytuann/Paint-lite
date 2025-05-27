@@ -9,7 +9,7 @@ import type {ToolType} from "@/types";
 
 export interface DrawingObject {
   id: string;
-  type: ToolType;
+  type: ToolType | null;
   x: number;
   y: number;
   width?: number;
@@ -22,6 +22,8 @@ export interface DrawingObject {
   strokeStyle?: StrokeStyle;
   backgroundColor?: string;
   opacity?: number;
+  isImageType?: boolean;
+  imageData?: string;
 }
 
 export class CanvasStore {
@@ -39,6 +41,9 @@ export class CanvasStore {
 
   // Canvas reference for export
   canvasRef: HTMLCanvasElement | null = null;
+
+  // Image counter (use for re-render Canvas component after uploaded)
+  imageCount: number = 0;
 
   constructor() {
     makeAutoObservable(this);
@@ -72,6 +77,10 @@ export class CanvasStore {
 
   setCurrentObject = (object: Partial<DrawingObject> | null) => {
     this.currentObject = object;
+  };
+
+  setImageCount = () => {
+    this.imageCount++;
   };
 
   // Computed values
@@ -139,5 +148,61 @@ export class CanvasStore {
     } catch (error) {
       console.error("Failed to export canvas:", error);
     }
+  };
+
+  // Upload and draw image
+  uploadImage = (file: File): Promise<DrawingObject | null> => {
+    if (!this.canvasRef) {
+      console.error("Canvas reference not available for image upload");
+      return Promise.resolve(null);
+    }
+
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const img = new Image();
+
+        img.onload = () => {
+          // Calculate image size and position
+          const canvas = this.canvasRef!;
+          const canvasWidth = canvas.width;
+          const canvasHeight = canvas.height;
+          const scale = Math.min(
+            (canvasWidth * 0.8) / img.width,
+            (canvasHeight * 0.8) / img.height
+          );
+
+          const width = img.width * scale;
+          const height = img.height * scale;
+
+          // Center the image on the canvas
+          const x = (canvasWidth - width) / 2;
+          const y = (canvasHeight - height) / 2;
+
+          // Create new image object
+          const imageObject: DrawingObject = {
+            id: Date.now().toString(),
+            type: null,
+            x,
+            y,
+            width,
+            height,
+            imageData: e.target?.result as string,
+            opacity: 100,
+            isImageType: true,
+          };
+
+          this.addObject(imageObject);
+          this.setImageCount();
+
+          resolve(imageObject);
+        };
+
+        img.src = e.target?.result as string;
+      };
+
+      reader.readAsDataURL(file);
+    });
   };
 }

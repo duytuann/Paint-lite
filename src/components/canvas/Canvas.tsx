@@ -209,6 +209,29 @@ const Canvas = observer(() => {
           break;
       }
 
+      if (obj.isImageType) {
+        if (
+          obj.imageData &&
+          typeof obj.width === "number" &&
+          typeof obj.height === "number"
+        ) {
+          const img = new Image();
+          img.src = obj.imageData;
+          const x = typeof obj.x === "number" ? obj.x : 0;
+          const y = typeof obj.y === "number" ? obj.y : 0;
+          const width = obj.width;
+          const height = obj.height;
+
+          if (img.complete) {
+            ctx.drawImage(img, x, y, width, height);
+          } else {
+            img.onload = () => {
+              ctx.drawImage(img, x, y, width, height);
+            };
+          }
+        }
+      }
+
       // Restore canvas state (cleanup)
       ctx.restore();
     },
@@ -246,6 +269,7 @@ const Canvas = observer(() => {
     canvasStore.objects,
     canvasStore.canvasBackgroundColor,
     canvasStore.currentObject,
+    canvasStore.imageCount,
     toolStore.isDrawing,
     drawObject,
   ]);
@@ -279,7 +303,8 @@ const Canvas = observer(() => {
     };
 
     return handleSetup();
-  }, [canvasStore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="canvas-container" ref={containerRef}>

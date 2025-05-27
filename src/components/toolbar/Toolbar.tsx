@@ -1,7 +1,7 @@
 import {observer} from "mobx-react-lite";
 import {TOOLS, MAIN_TOOLS} from "@/constants/tools";
 import {useToolStore, useCanvasStore} from "@/store";
-import {Download} from "lucide-react";
+import {Download, Upload} from "lucide-react";
 import "./Toolbar.css";
 
 const Toolbar = observer(() => {
@@ -11,6 +11,33 @@ const Toolbar = observer(() => {
   const handleExport = () => {
     const timestamp = new Date().toISOString();
     canvasStore.exportAsImage(`drawing-${timestamp}`);
+  };
+
+  const handleImageUpload = () => {
+    // Create a hidden input file
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.style.display = "none";
+
+    fileInput.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files && target.files.length > 0) {
+        const file = target.files[0];
+        canvasStore
+          .uploadImage(file)
+          .then(() => {
+            console.log("Image uploaded successfully");
+          })
+          .catch((error) => {
+            console.error("Failed to upload image:", error);
+          });
+      }
+    };
+
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
   };
 
   return (
@@ -39,8 +66,15 @@ const Toolbar = observer(() => {
         {/* Divider */}
         <div className="toolbar-divider"></div>
 
-        {/* Export Button */}
+        {/* Actions */}
         <div className="toolbar-actions">
+          <button
+            className="toolbar-button upload-button"
+            onClick={handleImageUpload}
+            title="Upload Image"
+          >
+            <Upload className="tool-icon" size={16} />
+          </button>
           <button
             className="toolbar-button export-button"
             onClick={handleExport}

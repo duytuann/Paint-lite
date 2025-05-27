@@ -1,6 +1,6 @@
 import {observer} from "mobx-react-lite";
 import {useCanvasStore} from "@/store";
-import {Undo, Redo, Trash2, Square} from "lucide-react";
+import {Undo, Redo, Trash2, Square, Image} from "lucide-react";
 import {TOOLS} from "@/constants/tools";
 import "./Layers.css";
 
@@ -41,6 +41,18 @@ const Layers = observer(() => {
             <div className="no-objects">No layers</div>
           ) : (
             canvasStore.objects.map((object, index) => {
+              if (object.type == null) {
+                return (
+                  <div key={object.id} className="layer-item">
+                    <div className="layer-icon">
+                      <Image size={14} />
+                    </div>
+                    <div className="layer-info">
+                      <span className="layer-name">Layer {index + 1}</span>
+                    </div>
+                  </div>
+                );
+              }
               const IconComponent = getToolIcon(object.type);
               return (
                 <div key={object.id} className="layer-item">

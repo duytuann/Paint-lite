@@ -84,6 +84,14 @@
   color: #22c55e;
 }
 
+.upload-button:hover {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.upload-button:hover .tool-icon {
+  color: #6366f1;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .toolbar {
